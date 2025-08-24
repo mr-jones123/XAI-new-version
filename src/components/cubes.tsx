@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import "../app/globals.css";
 
@@ -45,12 +45,22 @@ const Cubes: React.FC<CubesProps> = ({
   rippleSpeed = 2,
 }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const rafRef = useRef<number | null>(null);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const userActiveRef = useRef(false);
   const simPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const simTargetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const simRAFRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1024 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const colGap =
     typeof cellGap === "number"
@@ -103,6 +113,8 @@ const Cubes: React.FC<CubesProps> = ({
 
   const onPointerMove = useCallback(
     (e: PointerEvent) => {
+      if (isMobile) return; // Skip on mobile for better performance
+      
       userActiveRef.current = true;
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
 
@@ -121,7 +133,7 @@ const Cubes: React.FC<CubesProps> = ({
         userActiveRef.current = false;
       }, 3000);
     },
-    [gridSize, tiltAt]
+    [gridSize, tiltAt, isMobile]
   );
 
   const resetAll = useCallback(() => {
@@ -290,31 +302,37 @@ const Cubes: React.FC<CubesProps> = ({
       rafRef.current != null && cancelAnimationFrame(rafRef.current);
       idleTimerRef.current && clearTimeout(idleTimerRef.current);
     };
-  }, [onPointerMove, resetAll, onClick, onTouchMove, onTouchStart, onTouchEnd]);
+  }, [onPointerMove, resetAll, onClick, onTouchMove, onTouchStart, onTouchEnd, isMobile]);
 
-  const cells = Array.from({ length: gridSize });
+  // Responsive grid size
+  const responsiveGridSize = isMobile ? Math.max(6, Math.floor(gridSize * 0.8)) : gridSize;
+  const cells = Array.from({ length: responsiveGridSize });
   const sceneStyle: React.CSSProperties = {
     gridTemplateColumns: cubeSize
-      ? `repeat(${gridSize}, ${cubeSize}px)`
-      : `repeat(${gridSize}, 1fr)`,
+      ? `repeat(${responsiveGridSize}, ${cubeSize}px)`
+      : `repeat(${responsiveGridSize}, 1fr)`,
     gridTemplateRows: cubeSize
-      ? `repeat(${gridSize}, ${cubeSize}px)`
-      : `repeat(${gridSize}, 1fr)`,
+      ? `repeat(${responsiveGridSize}, ${cubeSize}px)`
+      : `repeat(${responsiveGridSize}, 1fr)`,
     columnGap: colGap,
     rowGap: rowGap,
   };
-  const wrapperStyle = {
+  const wrapperStyle: React.CSSProperties & Record<string, string> = {
     "--cube-face-border": borderStyle,
     "--cube-face-bg": faceColor,
     "--cube-face-shadow":
       shadow === true ? "0 0 6px rgba(0,0,0,.5)" : shadow || "none",
     ...(cubeSize
       ? {
-          width: `${gridSize * cubeSize}px`,
-          height: `${gridSize * cubeSize}px`,
+          width: `${responsiveGridSize * cubeSize}px`,
+          height: `${responsiveGridSize * cubeSize}px`,
         }
-      : {}),
-  } as React.CSSProperties;
+      : {
+          maxWidth: isMobile ? '80vw' : '100%',
+          maxHeight: isMobile ? '80vw' : '100%',
+        }),
+    touchAction: isMobile ? 'manipulation' : 'auto',
+  };
 
   return (
     <div className="default-animation" style={wrapperStyle}>
@@ -325,7 +343,7 @@ const Cubes: React.FC<CubesProps> = ({
       >
         {cells.map((_, r) =>
           cells.map((__, c) => (
-            <div key={`${r}-${c}`} className="cube" data-row={r} data-col={c}>
+            <div key={`${r}-${c}`} className={`cube ${isMobile ? 'cube-mobile' : ''}`} data-row={r} data-col={c}>
               <div className="cube-face cube-face--top" />
               <div className="cube-face cube-face--bottom" />
               <div className="cube-face cube-face--left" />

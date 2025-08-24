@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unknown-property */
-import React, { forwardRef, useMemo, useRef, useLayoutEffect } from "react";
+import React, { forwardRef, useMemo, useRef, useLayoutEffect, useState, useEffect } from "react";
 import { Canvas, useFrame, useThree, RootState } from "@react-three/fiber";
 import { Color, Mesh, ShaderMaterial } from "three";
 import { IUniform } from "three";
@@ -141,21 +141,46 @@ const Silk: React.FC<SilkProps> = ({
   rotation = 0,
 }) => {
   const meshRef = useRef<Mesh>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [pixelRatio, setPixelRatio] = useState(1);
+
+  useEffect(() => {
+    const checkDevice = () => {
+      setIsMobile(window.innerWidth <= 1024 || 'ontouchstart' in window);
+      setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 2 : 3));
+    };
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, [isMobile]);
 
   const uniforms = useMemo<SilkUniforms>(
     () => ({
-      uSpeed: { value: speed },
-      uScale: { value: scale },
-      uNoiseIntensity: { value: noiseIntensity },
+      uSpeed: { value: isMobile ? speed * 1.2 : speed },
+      uScale: { value: isMobile ? scale * 1.1 : scale },
+      uNoiseIntensity: { value: isMobile ? noiseIntensity : noiseIntensity },
       uColor: { value: new Color(...hexToNormalizedRGB(color)) },
       uRotation: { value: rotation },
       uTime: { value: 0 },
     }),
-    [speed, scale, noiseIntensity, color, rotation]
+    [speed, scale, noiseIntensity, color, rotation, isMobile]
   );
 
   return (
-    <Canvas dpr={[1, 2]} frameloop="always">
+    <Canvas 
+      dpr={[1, pixelRatio]} 
+      frameloop="always"
+      performance={{
+        min: isMobile ? 0.3 : 0.5,
+        max: 1,
+        debounce: 200,
+      }}
+      gl={{
+        antialias: !isMobile,
+        alpha: true,
+        powerPreference: isMobile ? 'low-power' : 'high-performance',
+      }}
+    >
       <SilkPlane ref={meshRef} uniforms={uniforms} />
     </Canvas>
   );

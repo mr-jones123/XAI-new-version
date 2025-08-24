@@ -8,8 +8,19 @@ const World = dynamic(() => import("./globe").then((m) => m.World), {
 });
 
 export function GlobeComponent() {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const globeConfig = {
-    pointSize: 4,
+    pointSize: isMobile ? 2 : 4,
     globeColor: "#062056",
     showAtmosphere: true,
     atmosphereColor: "#FFFFFF",
@@ -28,7 +39,7 @@ export function GlobeComponent() {
     maxRings: 3,
     initialPosition: { lat: 14.5995, lng: 120.9842 },
     autoRotate: true,
-    autoRotateSpeed: 0.5,
+    autoRotateSpeed: isMobile ? 0.3 : 0.5,
   };
   const colors = ["#06b6d4", "#3b82f6", "#6366f1"];
   const sampleArcs = [
@@ -395,18 +406,19 @@ export function GlobeComponent() {
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center py-20 space-y-3 h-screen md:h-auto dark:bg-black bg-black relative w-full">
-      <h2 className="text-center text-4xl md:text-6xl font-bold text-white instrument">
-        Get Down to Business
-      </h2>
-      <h3 className="text-center md:text-4xl font-semibold text-white ">
-        XeeAI can make you money
+    <div className="flex flex-col items-center justify-center py-10 sm:py-15 md:py-20 h-auto dark:bg-black bg-black relative w-full">
+      <h1 className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white instrument px-4">
+        Trust Makes Money
+      </h1>
+      <h3 className="text-center text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-regular text-white mt-6 sm:mt-8 md:mt-11 px-4 max-w-5xl leading-relaxed">
+        XeeAI can help your business grow within the global Explainable AI (XAI) market which has a projected value of
+        $24.58 Billion by 2030.
       </h3>
-      <div className="max-w-7xl mx-auto w-full relative overflow-hidden h-full md:h-[40rem] px-4">
-        <div className="absolute w-full -bottom-20 h-72 md:h-full z-10">
+      <div className="max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-4xl xl:max-w-6xl 2xl:max-w-7xl mx-auto w-full relative overflow-hidden h-[20rem] sm:h-[25rem] md:h-[30rem] lg:h-[35rem] xl:h-[40rem] px-2 sm:px-4">
+        <div className={`absolute w-full ${isMobile ? '-bottom-10 sm:-bottom-15' : '-bottom-20'} h-full z-10`}>
           <World data={sampleArcs} globeConfig={globeConfig} />
         </div>
       </div>
     </div>
-  );
+  )
 }
