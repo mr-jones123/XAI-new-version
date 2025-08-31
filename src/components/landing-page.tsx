@@ -7,6 +7,7 @@ import MagnetLines from "@/components/magnetlines";
 import { TextHoverEffect } from "@/components/text-hover-effect";
 import Cubes from "@/components/cubes";
 import { GlobeComponent } from "@/components/globe-component"
+import { Button } from "./ui/button";
 import {
   Card,
   CardHeader,
@@ -32,11 +33,13 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button className="px-6 sm:px-8 py-2.5 sm:py-3 bg-white text-black rounded-lg font-semibold hover:bg-gray-200 transition-colors text-sm sm:text-base touch-manipulation">
-                Get Started
+                Ongoing Work
               </button>
-              <button className="px-6 sm:px-8 py-2.5 sm:py-3 border border-white text-white rounded-lg font-semibold hover:bg-white hover:text-black transition-colors text-sm sm:text-base touch-manipulation">
-                Learn More
-              </button>
+              <Button asChild className="px-6 sm:px-8 py-2.5 sm:py-3 border border-white text-white rounded-lg font-semibold hover:bg-white hover:text-black transition-colors text-sm sm:text-base touch-manipulation">
+                <Link href={"https://xai-research.vercel.app/"}>
+                Visit Old Version
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
