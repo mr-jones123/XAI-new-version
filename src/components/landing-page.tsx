@@ -168,7 +168,7 @@ export default function LandingPage() {
             XeeAI is made by <span className="instrument">Techne</span>
           </h1>
           <DeveloperToolTip />
-          <p className="text-sm sm:text-base md:text-lg text-gray-300 text-center">
+          {/* <p className="text-sm sm:text-base md:text-lg text-gray-300 text-center">
             This website is made by
             {" "}
             <Link
@@ -179,7 +179,7 @@ export default function LandingPage() {
               </span>
             </Link>
 
-          </p>
+          </p> */}
         </div>
       </div>
     </div>
